@@ -1,0 +1,13 @@
+# Ignorer Python cache-filer
+__pycache__/
+*.pyc
+
+# Ignorer SQLite databasefiler
+*.db
+
+# Ignorer CSV-filer
+*.csv
+
+# Ignorer virtuelle miljøer
+venv/
+env/
