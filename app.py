@@ -1,5 +1,7 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 import sqlite3
+from io import StringIO
+import csv
 
 app = Flask(__name__)
 
@@ -19,11 +21,11 @@ def get_reviews():
 def add_review():
     data = request.get_json()
     
-    # Tjek om data er en liste (flere anmeldelser) eller en enkelt dict (én anmeldelse)
+    # Check if data is a list (multiple reviews) or a single dict (one review)
     if isinstance(data, list):
         reviews = data
     else:
-        reviews = [data]  # Pak enkelt objekt i en liste for konsistens
+        reviews = [data]  # Wrap single object in a list for consistency
     
     conn = get_db_connection()
     try:
@@ -50,7 +52,50 @@ def add_review():
     finally:
         conn.close()
 
-    return jsonify({"message": "Anmeldelser tilføjet succesfuldt"}), 201
+    return jsonify({"message": "Reviews added successfully"}), 201
+
+# Export reviews to CSV
+@app.route('/reviews/csv', methods=['GET'])
+def export_reviews_csv():
+    conn = get_db_connection()
+    reviews = conn.execute('SELECT * FROM reviews').fetchall()
+    conn.close()
+    
+    si = StringIO()
+    writer = csv.writer(si)
+    
+    # Write CSV header
+    writer.writerow([
+        'Review ID',
+        'First Name',
+        'Last Name',
+        'Email',
+        'Booking Number',
+        'Room Type',
+        'Country',
+        'Days Rented',
+        'Review'
+    ])
+    
+    # Write review data
+    for review in reviews:
+        writer.writerow([
+            review['id'],  # Assuming there's an 'id' column in your table
+            review['first_name'],
+            review['last_name'],
+            review['email'],
+            review['booking_number'],
+            review['room_type'],
+            review['country'],
+            review['days_rented'],
+            review['review']
+        ])
+    
+    # Create a response with the CSV data
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=reviews.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
