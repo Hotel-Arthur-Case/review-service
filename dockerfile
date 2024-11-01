@@ -2,7 +2,7 @@
 FROM python:3.9-slim
 
 # Set the working directory in the container
-WORKDIR /Users/BirkLauritzen/Documents/KEA/3semester/hotelArthurCase/Untitled/review-service/app.py
+WORKDIR /app.py
 
 # Copy the requirements file and install dependencies
 COPY requirements.txt ./
